@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Blaze Content Forge</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            display: none;
+        }
+        .result-card.active { display: block; }
+        
+        .slide {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        .slide h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .caption-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        
+        .hashtags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .hashtag {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .score-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        .score-high { background: #28a745; color: white; }
+        .score-medium { background: #ffc107; color: #333; }
+        .score-low { background: #dc3545; color: white; }
+        
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .copy-btn:hover { background: #218838; }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .loading.active { display: block; }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Blaze Content Forge</h1>
+            <p>AI-Powered Instagram Content Generator</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('carousel')">📱 Carousel Post</div>
+                <div class="tab" onclick="switchTab('caption')">✍️ Caption Only</div>
+                <div class="tab" onclick="switchTab('hashtags')">🔖 Hashtags</div>
+                <div class="tab" onclick="switchTab('calendar')">📅 Content Calendar</div>
+            </div>
+
+            <!-- Carousel Tab -->
+            <div id="carousel-tab" class="tab-content">
+                <div class="form-group">
+                    <label>Topic/Theme</label>
+                    <input type="text" id="topic" placeholder="e.g., Email Marketing Tips" value="Email Marketing Tips">
+                </div>
+
+                <div class="form-group">
+                    <label>Industry</label>
+                    <select id="industry">
+                        <option value="ecommerce">E-commerce</option>
+                        <option value="saas">SaaS/Tech</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="food">Food/Recipes</option>
+                        <option value="fashion">Fashion</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Brand Voice</label>
+                    <select id="voice">
+                        <option value="friendly">Friendly</option>
+                        <option value="professional">Professional</option>
+                        <option value="playful">Playful</option>
+                        <option value="luxury">Luxury</option>
+                        <option value="edgy">Edgy</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Number of Slides</label>
+                    <input type="number" id="slides" value="7" min="3" max="10">
+                </div>
+
+                <div class="form-group">
+                    <label>Template Type</label>
+                    <select id="template">
+                        <option value="tips">Tips/Advice</option>
+                        <option value="mistakes">Common Mistakes</option>
+                        <option value="steps">Step-by-Step</option>
+                        <option value="guide">Complete Guide</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="generateCarousel()" id="generateBtn">🚀 Generate Carousel</button>
+            </div>
+
+            <!-- Caption Tab -->
+            <div id="caption-tab" class="tab-content" style="display:none;">
+                <div class="form-group">
+                    <label>Topic</label>
+                    <input type="text" id="caption-topic" placeholder="e.g., Product Launch">
+                </div>
+                <div class="form-group">
+                    <label>Industry</label>
+                    <select id="caption-industry">
+                        <option value="ecommerce">E-commerce</option>
+                        <option value="saas">SaaS/Tech</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="food">Food/Recipes</option>
+                        <option value="fashion">Fashion</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="generateCaptionOnly()">✍️ Generate Caption</button>
+            </div>
+
+            <!-- Hashtags Tab -->
+            <div id="hashtags-tab" class="tab-content" style="display:none;">
+                <div class="form-group">
+                    <label>Topic</label>
+                    <input type="text" id="hashtag-topic" placeholder="e.g., Digital Marketing">
+                </div>
+                <div class="form-group">
+                    <label>Industry</label>
+                    <select id="hashtag-industry">
+                        <option value="ecommerce">E-commerce</option>
+                        <option value="saas">SaaS/Tech</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="food">Food/Recipes</option>
+                        <option value="fashion">Fashion</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Number of Sets</label>
+                    <input type="number" id="num-sets" value="3" min="1" max="5">
+                </div>
+                <button class="btn" onclick="generateHashtagsOnly()">🔖 Generate Hashtags</button>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div id="calendar-tab" class="tab-content" style="display:none;">
+                <div class="form-group">
+                    <label>Brand Name</label>
+                    <input type="text" id="brand-name" placeholder="e.g., Blaze Ignite">
+                </div>
+                <div class="form-group">
+                    <label>Industry</label>
+                    <select id="calendar-industry">
+                        <option value="ecommerce">E-commerce</option>
+                        <option value="saas">SaaS/Tech</option>
+                        <option value="fitness">Fitness</option>
+                        <option value="food">Food/Recipes</option>
+                        <option value="fashion">Fashion</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Weeks to Plan</label>
+                    <input type="number" id="weeks" value="2" min="1" max="4">
+                </div>
+                <div class="form-group">
+                    <label>Posts Per Week</label>
+                    <input type="number" id="posts-per-week" value="3" min="1" max="7">
+                </div>
+                <button class="btn" onclick="generateCalendar()">📅 Generate Calendar</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>AI is creating your content...</p>
+            </div>
+
+            <div class="result-card" id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+
+        function switchTab(tab) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tab + '-tab').style.display = 'block';
+            event.target.classList.add('active');
+            
+            // Hide results
+            document.getElementById('results').classList.remove('active');
+        }
+
+        async function generateCarousel() {
+            const topic = document.getElementById('topic').value;
+            const industry = document.getElementById('industry').value;
+            const voice = document.getElementById('voice').value;
+            const slides = document.getElementById('slides').value;
+            const template = document.getElementById('template').value;
+
+            showLoading();
+
+            try {
+                const response = await fetch(`${API_URL}/generate/carousel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        topic, industry,
+                        brand_voice: voice,
+                        num_slides: parseInt(slides),
+                        template
+                    })
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (data.success) {
+                    displayCarouselResults(data.content);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                hideLoading();
+                alert('Failed to generate content: ' + error.message);
+            }
+        }
+
+        function displayCarouselResults(content) {
+            const results = document.getElementById('results');
+            
+            const scoreClass = content.engagement_score >= 80 ? 'score-high' :
+                              content.engagement_score >= 60 ? 'score-medium' : 'score-low';
+            
+            let html = `
+                <h2>📱 ${content.title}</h2>
+                <div class="score-badge ${scoreClass}">
+                    Engagement Score: ${content.engagement_score}/100
+                </div>
+                <p><strong>Best Posting Time:</strong> ${content.best_posting_time}</p>
+                <hr style="margin: 20px 0;">
+                
+                <h3>Slides:</h3>
+            `;
+            
+            content.slides.forEach((slide, i) => {
+                html += `
+                    <div class="slide">
+                        <h3>Slide ${i + 1}: ${slide.title}</h3>
+                        <p>${slide.content}</p>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <h3>Caption:</h3>
+                <div class="caption-box">
+                    <strong>${content.hook}</strong>
+                    
+                    ${content.caption}
+                    
+                    ${content.cta}
+                </div>
+                <button class="copy-btn" onclick="copyText('${content.caption.replace(/'/g, "\\'")}')">
+                    📋 Copy Caption
+                </button>
+                
+                <h3>Hashtags:</h3>
+                <div class="hashtags">
+                    ${content.hashtags.map(tag => `<span class="hashtag">${tag}</span>`).join('')}
+                </div>
+                <button class="copy-btn" onclick="copyText('${content.hashtags.join(' ').replace(/'/g, "\\'")}')">
+                    📋 Copy Hashtags
+                </button>
+            `;
+            
+            results.innerHTML = html;
+            results.classList.add('active');
+        }
+
+        async function generateCaptionOnly() {
+            const topic = document.getElementById('caption-topic').value;
+            const industry = document.getElementById('caption-industry').value;
+
+            showLoading();
+
+            try {
+                const response = await fetch(`${API_URL}/generate/caption`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, industry })
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (data.success) {
+                    const results = document.getElementById('results');
+                    results.innerHTML = `
+                        <h2>✍️ Generated Caption</h2>
+                        <div class="caption-box">${data.caption}</div>
+                        <button class="copy-btn" onclick="copyText('${data.caption.replace(/'/g, "\\'")}')">
+                            📋 Copy Caption
+                        </button>
+                        
+                        <h3>Hashtags:</h3>
+                        <div class="hashtags">
+                            ${data.hashtags.map(tag => `<span class="hashtag">${tag}</span>`).join('')}
+                        </div>
+                        <button class="copy-btn" onclick="copyText('${data.hashtags.join(' ').replace(/'/g, "\\'")}')">
+                            📋 Copy Hashtags
+                        </button>
+                    `;
+                    results.classList.add('active');
+                }
+            } catch (error) {
+                hideLoading();
+                alert('Failed to generate caption: ' + error.message);
+            }
+        }
+
+        async function generateHashtagsOnly() {
+            const topic = document.getElementById('hashtag-topic').value;
+            const industry = document.getElementById('hashtag-industry').value;
+            const numSets = document.getElementById('num-sets').value;
+
+            showLoading();
+
+            try {
+                const response = await fetch(`${API_URL}/generate/hashtags`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, industry, num_sets: parseInt(numSets) })
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (data.success) {
+                    let html = '<h2>🔖 Hashtag Sets</h2>';
+                    data.hashtag_sets.forEach(set => {
+                        html += `
+                            <h3>Set ${set.set_number} (${set.count} hashtags)</h3>
+                            <div class="hashtags">
+                                ${set.hashtags.map(tag => `<span class="hashtag">${tag}</span>`).join('')}
+                            </div>
+                            <button class="copy-btn" onclick="copyText('${set.hashtags.join(' ').replace(/'/g, "\\'")}')">
+                                📋 Copy Set ${set.set_number}
+                            </button>
+                            <br><br>
+                        `;
+                    });
+                    document.getElementById('results').innerHTML = html;
+                    document.getElementById('results').classList.add('active');
+                }
+            } catch (error) {
+                hideLoading();
+                alert('Failed to generate hashtags: ' + error.message);
+            }
+        }
+
+        async function generateCalendar() {
+            const brandName = document.getElementById('brand-name').value;
+            const industry = document.getElementById('calendar-industry').value;
+            const weeks = document.getElementById('weeks').value;
+            const postsPerWeek = document.getElementById('posts-per-week').value;
+
+            showLoading();
+
+            try {
+                const response = await fetch(`${API_URL}/generate/calendar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        brand_name: brandName,
+                        industry,
+                        weeks: parseInt(weeks),
+                        posts_per_week: parseInt(postsPerWeek)
+                    })
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (data.success) {
+                    let html = '<h2>📅 Content Calendar</h2>';
+                    data.calendar.forEach(week => {
+                        html += `<h3>Week ${week.week}</h3>`;
+                        week.posts.forEach(post => {
+                            html += `
+                                <div class="slide">
+                                    <p><strong>${post.day}</strong> - ${post.topic}</p>
+                                    <p>Type: ${post.type} | Pillar: ${post.pillar}</p>
+                                </div>
+                            `;
+                        });
+                    });
+                    document.getElementById('results').innerHTML = html;
+                    document.getElementById('results').classList.add('active');
+                }
+            } catch (error) {
+                hideLoading();
+                alert('Failed to generate calendar: ' + error.message);
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').classList.remove('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text);
+            alert('Copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
